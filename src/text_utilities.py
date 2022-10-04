@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+__author__ = "Ricardo Jung"
+__email__ = "s2458588@stud.uni-frankfurt.de"
+# __copyright__ = "Copyright 2007, The Cogent Project"
+# __credits__ = [""]
+# __license__ = "GPL"
+# __version__ = "1.0.1"
+# __maintainer__ = ""
+# __status__ = "Production"
+
+import regex as re
+import glob
+
+
+def from_path(path: str) -> set:
+    """Returns a set of vocabulary from txt files in a directory (use wd)"""
+    files = glob.glob(f'{path}/*.txt')
+    words = []
+    for f in files:
+        with open(f, 'r', encoding='utf8') as f:
+            words += f.read().split('\n')
+    try:
+        words.remove('')
+    except ValueError:
+        pass
+    return set(words)
+
+
+def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIUOÄÖÜ]?') -> dict:
+    """Counts chained vowels (max 2) from iterable word list and sorts them into a dict {vowelcount:{set of tokens}}"""
+    count_dict = dict()
+    for v in text:
+        vowels = re.findall(pattern=pattern, string=v)
+        if len(vowels) in count_dict:
+            count_dict[len(vowels)].add(v)
+        else:
+            count_dict.update({len(vowels): {v}})
+    try:
+        del count_dict[0]
+    except KeyError:
+        pass
+    return count_dict
