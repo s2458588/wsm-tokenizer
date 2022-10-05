@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 __author__ = "Ricardo Jung"
 __email__ = "s2458588@stud.uni-frankfurt.de"
-# __copyright__ = "Copyright 2007, The Cogent Project"
+# __copyright__ = ""
 # __credits__ = [""]
-# __license__ = "GPL"
-# __version__ = "1.0.1"
+# __license__ = ""
+# __version__ = ""
 # __maintainer__ = ""
-# __status__ = "Production"
+# __status__ = ""
 
 import regex as re
 import glob
