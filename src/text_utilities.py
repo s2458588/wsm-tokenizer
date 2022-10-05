@@ -43,12 +43,9 @@ def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIU
     return count_dict
 
 
-def map_subword(target: str, map: str) -> str:
+def decode(target: str, map: str) -> str:
     """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends."""
     if map.startswith("1"):
         return target[:map.count("1")] + "##"
     elif map.endswith("1"):
         return "##" + target[-map.count("1"):]
-
-
-print(map_subword("verstehen", "000000011"))
