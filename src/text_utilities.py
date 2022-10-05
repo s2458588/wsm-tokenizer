@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 __author__ = "Ricardo Jung"
 __email__ = "s2458588@stud.uni-frankfurt.de"
+
 # __copyright__ = ""
 # __credits__ = [""]
 # __license__ = ""
@@ -40,3 +41,14 @@ def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIU
     except KeyError:
         pass
     return count_dict
+
+
+def map_subword(target: str, map: str) -> str:
+    """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends."""
+    if map.startswith("1"):
+        return target[:map.count("1")] + "##"
+    elif map.endswith("1"):
+        return "##" + target[-map.count("1"):]
+
+
+print(map_subword("verstehen", "000000011"))

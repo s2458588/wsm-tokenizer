@@ -33,3 +33,4 @@ def word_mapping(target: str, token_dict: dict, syllables: int) -> list:
             step += 1
             m = []
     return maps
+
