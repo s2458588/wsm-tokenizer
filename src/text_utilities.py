@@ -43,9 +43,14 @@ def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIU
     return count_dict
 
 
-def decode(target: str, map: str) -> str:
-    """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends."""
+def decode(target: str, map: str) -> (str, str):
+    """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends and returning the remaining string"""
     if map.startswith("1"):
-        return target[:map.count("1")] + "##"
+        return target[:map.count("1")] + "##", target[-map.count("0"):]
     elif map.endswith("1"):
-        return "##" + target[-map.count("1"):]
+        return target[-map.count("0"):], "##" + target[-map.count("1"):]
+
+
+def charmatch(s1, s2, index=0) -> bool:
+    """Compares characters of two strings at index and returns bool."""
+    return s1[index] == s2[index]
