@@ -43,14 +43,20 @@ def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIU
     return count_dict
 
 
-def decode(target: str, map: str) -> (str, str):
-    """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends and returning the remaining string"""
-    if map.startswith("1"):
-        return target[:map.count("1")] + "##", target[-map.count("0"):]
-    elif map.endswith("1"):
-        return target[-map.count("0"):], "##" + target[-map.count("1"):]
+def decode(target: str, m: str) -> (str, str):
+    """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends and returning the
+    remaining string """
+    if m.startswith("1"):
+        return target[:m.count("1")] + "##", target[-m.count("0"):]
+    elif m.endswith("1"):
+        return target[-m.count("0"):], "##" + target[-m.count("1"):]
 
 
-def charmatch(s1, s2, index=0) -> bool:
-    """Compares characters of two strings at index and returns bool."""
-    return s1[index] == s2[index]
+def match_ends(s1: str, s2: str):
+    """Compares characters of two strings at index and returns a case."""
+    cases = {
+        "first": s1[0] == s2[0],
+        "last": s1[-1] == s2[-1],
+        "any": (s1[0] == s2[0] or s1[-1] == s2[-1])
+    }
+    return cases
