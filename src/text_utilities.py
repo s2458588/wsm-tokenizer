@@ -29,6 +29,7 @@ def from_path(path: str) -> set:
 
 def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIUOÄÖÜ]?') -> dict:
     """Counts chained vowels (max 2) from iterable word list and sorts them into a dict {vowelcount:{set of tokens}}"""
+
     count_dict = dict()
     for v in text:
         vowels = re.findall(pattern=pattern, string=v)
