@@ -17,8 +17,8 @@ def from_path(path: str) -> set:
     """Returns a set of vocabulary from txt files in a directory (use wd)"""
     files = glob.glob(f'{path}/*.txt')
     words = []
-    for f in files:
-        with open(f, 'r', encoding='utf8') as f:
+    for file in files:
+        with open(file, 'r', encoding='utf8') as f:
             words += f.read().split('\n')
     try:
         words.remove('')
@@ -67,3 +67,7 @@ def match_ends(s1: str, s2: str):
         "any": (s1[0] == s2[0] or s1[-1] == s2[-1])
     }
     return cases
+
+
+def char_compare(str1, str2):
+    return 1 if str1 == str2 else 0
