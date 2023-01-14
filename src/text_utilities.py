@@ -27,21 +27,27 @@ def from_path(path: str) -> set:
     return set(words)
 
 
-def count_syllables(text: set, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIUOÄÖÜ]?') -> dict:
+def count_syllables(text, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIUOÄÖÜ]?'):
     """Counts chained vowels (max 2) from iterable word list and sorts them into a dict {vowelcount:{set of tokens}}"""
 
-    count_dict = dict()
-    for v in text:
-        vowels = re.findall(pattern=pattern, string=v)
-        if len(vowels) in count_dict:
-            count_dict[len(vowels)].add(v)
-        else:
-            count_dict.update({len(vowels): {v}})
-    try:
-        del count_dict[0]
-    except KeyError:
-        pass
-    return count_dict
+    if isinstance(text, set):
+        count_dict = dict()
+        for v in text:
+            vowels = re.findall(pattern=pattern, string=v)
+            if len(vowels) in count_dict:
+                count_dict[len(vowels)].add(v)
+            else:
+                count_dict.update({len(vowels): {v}})
+        try:
+            del count_dict[0]
+        except KeyError:
+            pass
+        return count_dict
+    else:
+        try:
+            return len(re.findall(pattern=pattern, string=text))
+        except TypeError:
+            print(Exception)
 
 
 def decode(target: str, m: str) -> (str, str):
