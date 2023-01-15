@@ -69,5 +69,9 @@ def match_ends(s1: str, s2: str):
     return cases
 
 
-def char_compare(str1, str2):
-    return 1 if str1 == str2 else 0
+def wordmap(longer, shorter, start=0):
+    """Compares every character for a pair of strings. Takes start index as optional argument. Returns wordmap"""
+    return [int(c1 == c2) for c1, c2 in zip(list(longer)[start::], list(shorter))]
+
+
+
