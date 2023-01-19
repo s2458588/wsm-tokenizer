@@ -11,6 +11,36 @@ __email__ = "s2458588@stud.uni-frankfurt.de"
 
 import regex as re
 import glob
+import numpy as np
+import collections as cl
+
+
+def corpus_metrics(tokenset):
+    all_chars = ""
+    for sylnumber in tokenset:
+        for v in tokenset[sylnumber]:
+            all_chars += v
+
+    n_maps = cl.Counter(list(all_chars)).most_common()
+    char_array = np.array(n_maps)
+
+    n_count = [i[1] for i in n_maps]
+    total_count = sum(n_count)
+    rel_freqs = [i / total_count for i in n_count]
+
+    # ARRAY WITH CHARS, COUNTS and REL. FREQ
+    full_array = np.column_stack((char_array, rel_freqs))
+    return {j: (int(k), float(l)) for (j, k, l) in full_array}
+
+
+class PosCorpus:
+    """Corpus object generated from files in a folder"""
+
+    def __init__(self, path):
+        self.path = path
+        self.types = from_path(path)
+        self.counted_corpus = count_syllables(self.types)  # corpus sorted tokens into approx. syllable counts
+        self.metrics = corpus_metrics(self.counted_corpus)  # contains character metrics; count, relative frequency
 
 
 def from_path(path: str) -> set:
@@ -72,6 +102,3 @@ def match_ends(s1: str, s2: str):
 def wordmap(longer, shorter, start=0):
     """Compares every character for a pair of strings. Takes start index as optional argument. Returns wordmap"""
     return [int(c1 == c2) for c1, c2 in zip(list(longer)[start::], list(shorter))]
-
-
-
