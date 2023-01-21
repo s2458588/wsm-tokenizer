@@ -102,3 +102,17 @@ def match_ends(s1: str, s2: str):
 def wordmap(longer, shorter, start=0):
     """Compares every character for a pair of strings. Takes start index as optional argument. Returns wordmap"""
     return [int(c1 == c2) for c1, c2 in zip(list(longer)[start::], list(shorter))]
+
+def derive_wordmap(wordmap):
+    """Takes a wordmap from MapToken() and finds the lexeme with the wordmap's derivative."""
+    x = np.ndarray(
+        (len(wordmap),),
+        dtype=int,
+        buffer=np.array(mt1.wordmap)
+    )
+    dx = x[1] - x[0]
+    f = np.sin(x)
+    d_dx = FinDiff(0, dx)
+    df_dx = d_dx(f)
+
+    return df_dx
