@@ -13,7 +13,7 @@ import regex as re
 import glob
 import numpy as np
 import collections as cl
-
+from findiff import FinDiff
 
 def corpus_metrics(tokenset):
     all_chars = ""
@@ -80,7 +80,7 @@ def count_syllables(text, pattern='[aeuioäöüAEIUOÄÖÜ][aeuioäöüAEIUOÄÖ
             print(Exception)
 
 
-def decode(target: str, m: str) -> (str, str):
+def decode(target: str, m: str):
     """Returns a subword from a target string and a map. Yet to implement maps with 1 on both ends and returning the
     remaining string """
     if m.startswith("1"):
@@ -108,7 +108,7 @@ def derive_wordmap(wordmap):
     x = np.ndarray(
         (len(wordmap),),
         dtype=int,
-        buffer=np.array(mt1.wordmap)
+        buffer=np.array(wordmap)
     )
     dx = x[1] - x[0]
     f = np.sin(x)
