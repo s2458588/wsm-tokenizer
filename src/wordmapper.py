@@ -12,6 +12,7 @@ __email__ = "s2458588@stud.uni-frankfurt.de"
 import text_utilities as tu
 import regex as rex
 
+
 pc = tu.PosCorpus('../data/experiment/verbs')
 pc.counted_corpus.keys()
 
@@ -34,7 +35,7 @@ class WordMapper:
             self.wordmap = self.sum_map_stack(self.maps)
 
     def stack_maps(self, target, tokenset, syllables):
-        l = len(target)
+        lt = len(target)
         # cc1, cc2, cc3 = 0,0,0
         maps = []
         for k in tokenset:
@@ -50,7 +51,7 @@ class WordMapper:
                         if case.get("first") and syllables != self.st:
                             # cc1+=1
                             wm = tu.wordmap(longer=longer, shorter=shorter)
-                            while len(wm) < l:
+                            while len(wm) < lt:
                                 wm.append(0)  # padding
                             maps.append(wm)
 
@@ -58,7 +59,7 @@ class WordMapper:
                             wm = []
                             # cc2+=1
                             wm = tu.wordmap(longer=longer, shorter=shorter, start=diff)
-                            while len(wm) < l:
+                            while len(wm) < lt:
                                 wm.insert(0, 0)  # padding
                             maps.append(wm)
 
@@ -74,9 +75,9 @@ class WordMapper:
         str_maps = ["".join([str(c) for c in m]) for m in maps]  # cast to str
         recount_map = [rex.sub(pattern=pattern, repl=lambda m: len(m.group(1)) * "0", string=sm) for sm in
                        str_maps]  # regex sub
-        regexed_listed = [list(i) for i in recount_map]  # into list form
-        regexed_inted = [[int(c) for c in m] for m in regexed_listed]  # cast back to int
-        self.clean_maps = regexed_inted
+        rex_str = [list(i) for i in recount_map]  # into list form
+        str2int = [[int(c) for c in m] for m in rex_str]  # cast back to int
+        self.clean_maps = str2int
 
     def sum_map_stack(self, maps):
         return [sum(x) for x in zip(*maps)]
