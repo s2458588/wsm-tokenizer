@@ -112,9 +112,12 @@ def derive_wordmap(wordmap, n=1):
         dtype=int,
         buffer=np.array(wordmap)
     )
-    dx = x[1]-x[0]  # np.std(x)
+    dx = x[1] - x[0]  # np.std(x)
     f = np.sin(x)
     d_dx = FinDiff(0, dx, n)
     df_dx = d_dx(f)
 
     return df_dx
+
+
+
