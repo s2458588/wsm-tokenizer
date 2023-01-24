@@ -13,7 +13,6 @@ import text_utilities as tu
 import regex as rex
 from scipy import stats
 
-
 pc = tu.PosCorpus('../data/experiment/verbs')
 pc.counted_corpus.keys()
 
@@ -92,11 +91,11 @@ class MapToken:
         # self.metrics = {c: metrics[c] for c in metrics if c in token}
         self.token = token
         self.zscores = stats.zscore(wordmap)
-        self.bwm = [1 if z <0 else 0 for z in self.zscores]  # boolean word map
+        self.bwm = [1 if z < 0 else 0 for z in self.zscores]  # boolean word map
         self.__morphemes = self.zip_wordmap(token, self.bwm)
         self.stem = self.__morphemes[0]
         self.affix = [x for x in self.__morphemes[1] if x != self.stem]
-        print(self.__morphemes, self.affix)
+
     def zip_wordmap(self, token: str, bwm: list):
         "t = target string, wm = boolean wordmap."
         stem = "".join([c for b, c in zip(self.bwm, token) if b])
