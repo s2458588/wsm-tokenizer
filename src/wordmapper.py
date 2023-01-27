@@ -97,6 +97,6 @@ class MapToken:
         self.affix = [x for x in self.__morphemes[1] if x != self.stem]
 
     def zip_wordmap(self, token: str, bwm: list):
-        "t = target string, wm = boolean wordmap."
+        """t = target string, wm = boolean wordmap."""
         stem = "".join([c for b, c in zip(self.bwm, token) if b])
         return stem, token.partition(stem)
