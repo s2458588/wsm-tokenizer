@@ -12,6 +12,7 @@ __email__ = "s2458588@stud.uni-frankfurt.de"
 
 
 class SequenceTokenizer:
+    """Generate a series of possible segmentations from a given vocabulary for a given target token."""
     def __init__(self, vocab, target):
         self.vocab = vocab
         self.segmentations = None
