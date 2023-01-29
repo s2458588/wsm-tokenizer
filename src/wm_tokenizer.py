@@ -21,9 +21,10 @@ class SequenceTokenizer:
     def __init__(self, vocab: dict, target: str):
         self.vocab = vocab
         self.target = target
+        self.length = len(target)
         self.subvocab = [i for i in self.vocab if i in self.target]
         self.segmentations = []
-        self.segmenter(self.target, stop=len(target))
+        self.segmenter(self.target, stop=self.length)
         self.maxed = None
         self.maximize_segments()
         print(self.segmentations, self.maxed)
@@ -32,7 +33,7 @@ class SequenceTokenizer:
         self.segmentations.append(s)
 
     def segmenter(self, token, stop: int, start=0, segments=None, stack=None):
-        if stack is None:
+        if stack is None:  # avoiding mutables in default arguments
             stack = []
         if segments is None:
             segments = []
@@ -44,16 +45,19 @@ class SequenceTokenizer:
         else:
             new_morpheme = [i for i in self.subvocab if token.startswith(i) and len(i) > 1]
             for m in new_morpheme:
-                rest = token[len(m):]
                 start += len(m)
                 segments.append(m)
+                rest = token[len(m):]
+                if len(rest) == 1:
+                    start = stop
+                    segments.append(rest)
                 self.segmenter(token=rest, stop=stop, start=start, segments=segments.copy(), stack=stack.copy())
                 segments = segments[:-1]
                 start -= len(m)
 
     def maximize_segments(self):
         ws = dict()
-        len_tk = len("".join(self.segmentations[0]))
+        len_tk = self.length
         for s in self.segmentations:
             coverage = [len(i) / len_tk for i in s]  # how much % of the word is covered by this morpheme
             morpheme_length = [len(i) for i in s]  # how long is each morpheme
