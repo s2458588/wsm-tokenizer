@@ -1,32 +1,47 @@
+#!/usr/bin/env python
+__author__ = "Ricardo Jung"
+__email__ = "s2458588@stud.uni-frankfurt.de"
+
+# __copyright__ = ""
+# __credits__ = [""]
+# __license__ = ""
+# __version__ = ""
+# __maintainer__ = ""
+# __status__ = ""
+
 import datasets
 import wm_tokenizer
-import text_utilities
+import text_utilities as tu
 from HanTa import HanoverTagger as ht
 from transformers import BertTokenizer, Trainer, TrainingArguments, BertForMaskedLM, AutoModelForMaskedLM
 from tokenizers import pre_tokenizers
 
-tu = text_utilities.VerbDict("../new_tokenizer/fun_vocab_raw.txt", "../new_tokenizer/lex_vocab_raw.txt")
+
+vd = tu.VerbDict("../new_tokenizer/fun_vocab_raw.txt", "../new_tokenizer/lex_vocab_raw.txt")
 
 wmt = wm_tokenizer.WordmapTokenizer(
     bert_pretokenizer=pre_tokenizers.BertPreTokenizer(),
     bert_tokenizer=BertTokenizer.from_pretrained("bert-base-german-cased"),
     hantatagger=ht.HanoverTagger('morphmodel_ger.pgz'),
-    vocab=tu
+    vocab=vd.lmfm
 )
+
+
+def wm_tokenize(data: list):
+    return wmt.wordmap2tokenizer(data, pos_tag="V", vocab=wmt.vocab, pt=wmt.bert_pretokenizer, tk=wmt.bert_tokenizer,
+                                 tg=wmt.hantatagger)
 
 
 def main():
     """TODO: Fix UNK tokens bei wmt.SequenceTokenizer"""
 
-    dataset = datasets.Dataset = ...
-    dataset = dataset.map(
-        wmt.wordmap2tokenizer(sentence,
-                              pos_tag="V",
-                              vocab=wmt.vocab,
-                              pt=wmt.bert_pretokenizer,
-                              tk=wmt.bert_tokenizer,
-                              tg=wmt.hantatagger)
-    )
+    files = tu.files_from_path("../data/oscar/to_lines", full_path=True)
+    dataset = datasets.load_dataset("text", data_files=files[5:15], split="train")
+    dataset.train_test_split(train_size=500000, test_size=75000, writer_batch_size=1000)
+
+
+
+    dataset = dataset.map()
 
     # recommendations: https://github.com/google-research/bert
     training_args = TrainingArguments(
@@ -48,8 +63,8 @@ def main():
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=train_dataset,  # training dataset
-        eval_dataset=val_dataset  # evaluation dataset
+        train_dataset=dataset["train"],  # training dataset
+        eval_dataset=dataset["test"]  # evaluation dataset
     )
 
     model = trainer.model

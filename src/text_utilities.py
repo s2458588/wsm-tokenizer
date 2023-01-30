@@ -22,7 +22,7 @@ class VerbDict:
     "../new_tokenizer/lex_vocab_raw.txt"
     """
 
-    def __init__(self, path_to_functional_morphemes: str, path_to_lexemic_morphemes: str):
+    def __init__(self, path_to_functional_morphemes="../new_tokenizer/fun_vocab_raw.txt", path_to_lexemic_morphemes="../new_tokenizer/lex_vocab_raw.txt"):
         self.path_to_functional_morphemes = path_to_functional_morphemes
         self.path_to_lexemic_morphemes = path_to_lexemic_morphemes
         self.lm_raw = None
@@ -168,3 +168,13 @@ def derive_wordmap(wordmap, n=1):
     df_dx = d_dx(f)
 
     return df_dx
+
+
+def files_from_path(path: str, full_path=True) -> list:
+    """Lists file in a directory"""
+    if full_path:
+        files = glob.glob(f'{path}/*.txt')
+        return files
+    else:
+        files = glob.glob(f'{path}/*.txt')
+        return [file[len(path)+1:] for file in files]
