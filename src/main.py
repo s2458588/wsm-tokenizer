@@ -1,41 +1,53 @@
 import datasets
-import wm_tokenizer as wm
+import wm_tokenizer
+import text_utilities
 from HanTa import HanoverTagger as ht
-from transformers import BertTokenizer
+from transformers import BertTokenizer, Trainer, TrainingArguments, BertForMaskedLM, AutoModelForMaskedLM
+from tokenizers import pre_tokenizers
 
-tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased")
-tagger = ht.HanoverTagger('morphmodel_ger.pgz')
+tu = text_utilities.VerbDict("../new_tokenizer/fun_vocab_raw.txt", "../new_tokenizer/lex_vocab_raw.txt")
 
-
-def wordmap2tokenizer(
-        sent: str,
-        pos_tag: str,
-        vocab,
-        tk=tokenizer,
-        tg=tagger,
-):
-    """Takes list of strings, a STTS Pos-tag and a vocabulary: dict/list."""
-    encoding = []
-
-    for i in sent.split(" "):
-        if tg.analyze(i)[1].startswith(pos_tag):
-            wmt = wm.SequenceTokenizer(vocab=vocab, target=i)
-            tokenizer_format = [wmt.maxed[0]]+["##" + i for i in wmt.maxed[1:]]
-            tokenizer.add_tokens(tokenizer_format)
-            encoding.extend(tokenizer_format)
-        else:
-            encoding.extend(tk.tokenize(i))
-    return tokenizer.encode_plus(encoding[1:-1], return_token_type_ids=True, return_attention_mask=True, padding=True, )
+wmt = wm_tokenizer.WordmapTokenizer(
+    bert_pretokenizer=pre_tokenizers.BertPreTokenizer(),
+    bert_tokenizer=BertTokenizer.from_pretrained("bert-base-german-cased"),
+    hantatagger=ht.HanoverTagger('morphmodel_ger.pgz'),
+    vocab=tu
+)
 
 
 def main():
+    """TODO: Fix UNK tokens bei wmt.SequenceTokenizer"""
+
     dataset = datasets.Dataset = ...
     dataset = dataset.map(
-        tokenize()
+        wmt.wordmap2tokenizer(sentence,
+                              pos_tag="V",
+                              vocab=wmt.vocab,
+                              pt=wmt.bert_pretokenizer,
+                              tk=wmt.bert_tokenizer,
+                              tg=wmt.hantatagger)
     )
 
-    trainer = Trainer(
+    training_args = TrainingArguments(
+        output_dir='./out/model_out',  # output directory
+        num_train_epochs=3,  # total number of training epochs
+        per_device_train_batch_size=16,  # batch size per device during training
+        per_device_eval_batch_size=64,  # batch size for evaluation
+        warmup_steps=500,  # number of warmup steps for learning rate scheduler
+        weight_decay=0.01,  # strength of weight decay
+        logging_dir='./out/model_logs',  # directory for storing logs
+        logging_steps=10,
+    )
 
+    model = AutoModelForMaskedLM.from_pretrained("bert-base-german-cased")
+
+    # model: https://huggingface.co/transformers/v4.5.1/main_classes/model.html#transformers.PreTrainedModel.resize_token_embeddings
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,  # training dataset
+        eval_dataset=val_dataset  # evaluation dataset
     )
 
     model = trainer.model

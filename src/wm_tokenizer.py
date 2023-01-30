@@ -12,6 +12,10 @@ __email__ = "s2458588@stud.uni-frankfurt.de"
 import numpy as np
 
 
+# from HanTa import HanoverTagger as ht
+# from transformers import BertTokenizer
+# from tokenizers import pre_tokenizers
+
 class SequenceTokenizer:
     """Generate a series of possible segmentations from a given vocabulary (dict: {string:relative freqency}) for a
     given target token."""
@@ -73,4 +77,41 @@ class SequenceTokenizer:
         self.maxed = ws[max(ws.keys())]
 
 
+class WordmapTokenizer:
+    def __init__(self, bert_pretokenizer, bert_tokenizer, hantatagger, vocab):
+        self.bert_pretokenizer = bert_pretokenizer
+        self.bert_tokenizer = bert_tokenizer
+        self.hantatagger = hantatagger
+        self.vocab = vocab
+        self.bert_tokenizer.add_vocab(list(self.vocab.keys()))
 
+    # from transformers import BertTokenizer
+    # tk = BertTokenizer.from_pretrained("bert-base-german-cased")
+    def wordmap2tokenizer(self, data: str, pos_tag: str, vocab, pt=None, tk=None, tg=None):
+        """Takes a string, a STTS Pos-tag and a vocabulary: dict/list. Wordmap will only tokenize tokens with the
+        given pos-tag. The rest will be done by BERT tokenizers.\n Requires:\n tk = BertTokenizer.from_pretrained(
+        "bert-base-german-cased")\n tg = ht.HanoverTagger('morphmodel_ger.pgz')\n
+        pt = pre_tokenizers.BertPreTokenizer()"""
+
+        encoding = []
+        sent = [s[0] for s in pt.pre_tokenize_str(data)]
+        for tkn in sent:
+            if tg.analyze(tkn)[1].startswith(pos_tag):
+                wmt = SequenceTokenizer(vocab=vocab, target=tkn)
+                tokenizer_format = [wmt.maxed[0]] + ["##" + i for i in wmt.maxed[1:]]
+                tk.add_tokens(wmt.maxed[0])
+                tk.add_tokens(tokenizer_format)
+                encoding.extend(tokenizer_format)
+            else:
+                encoding.extend(tk.tokenize(tkn))
+        return tk.encode_plus(encoding, return_token_type_ids=True, return_attention_mask=True,
+                              padding=True)
+
+
+if __name__ == '__main__':
+    WordmapTokenizer()
+
+    import sys
+
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]

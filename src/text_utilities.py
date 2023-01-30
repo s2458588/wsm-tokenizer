@@ -16,6 +16,56 @@ import collections as cl
 from findiff import FinDiff
 
 
+class VerbDict:
+    """Create a dictionary with format {token:relative frequency} from given crawled files in file paths.\n
+    "../new_tokenizer/fun_vocab_raw.txt"
+    "../new_tokenizer/lex_vocab_raw.txt"
+    """
+
+    def __init__(self, path_to_functional_morphemes: str, path_to_lexemic_morphemes: str):
+        self.path_to_functional_morphemes = path_to_functional_morphemes
+        self.path_to_lexemic_morphemes = path_to_lexemic_morphemes
+        self.lm_raw = None
+        self.fm_raw = None
+        self.lm_abs = None
+        self.fm_abs = None
+        self.lm_rel = None
+        self.fm_rel = None
+        self.lmfm = None
+        self.load_files()
+        self.generate_hashmaps()
+
+    def load_files(self):
+        with open(self.path_to_lexemic_morphemes, encoding="utf8", mode="r") as lv:
+            lm_raw = lv.read().split("\n")
+            lv.close()
+        self.lm_raw = lm_raw
+
+        with open(self.path_to_functional_morphemes, encoding="utf8", mode="r") as fv:
+            fm_raw = fv.read().split("\n")
+            fv.close()
+        self.fm_raw = fm_raw
+
+    def generate_hashmaps(self):
+        """Generates dictionaries for (1) functional morphemes (2) lexemic morphemes (3) both combined."""
+        fm_clean = [i for i in self.fm_raw if i != ""]  # select non-empty morphemes
+        fm_ncount = cl.Counter(fm_clean).most_common()
+        n_o_fm = len(fm_clean)
+        self.fm_rel = {k: v / n_o_fm if len(k) > 1 else 0 for k, v in fm_ncount}  # unary morphemes get no weight
+
+        lm_clean = [i for i in self.lm_raw if len(i) > 1]  # select only morphemes longer than 1 character
+        lm_ncount = cl.Counter(lm_clean).most_common()
+        n_o_lm = len(lm_clean)
+        self.lm_rel = {k: v / n_o_lm if len(k) > 1 and k not in self.fm_rel else 0 for k, v in lm_ncount}
+
+        fm_raw_clean = [i for i in self.fm_raw if i != ""]
+        lm_raw_clean = [i for i in self.lm_raw if i != ""]
+        lm_fm = lm_raw_clean + fm_raw_clean
+        lm_ncount = cl.Counter(lm_fm).most_common()
+        n_o_lm = len(lm_fm)
+        self.lmfm = {k: v / n_o_lm if len(k) > 1 else 0 for k, v in lm_ncount}  # unary morphemes get no weight
+
+
 def corpus_metrics(tokenset):
     all_chars = ""
     for sylnumber in tokenset:
@@ -118,6 +168,3 @@ def derive_wordmap(wordmap, n=1):
     df_dx = d_dx(f)
 
     return df_dx
-
-
-
