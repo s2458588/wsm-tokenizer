@@ -28,15 +28,17 @@ def main():
                               tg=wmt.hantatagger)
     )
 
+    # recommendations: https://github.com/google-research/bert
     training_args = TrainingArguments(
         output_dir='./out/model_out',  # output directory
-        num_train_epochs=3,  # total number of training epochs
+        num_train_epochs=4,  # total number of training epochs
         per_device_train_batch_size=16,  # batch size per device during training
         per_device_eval_batch_size=64,  # batch size for evaluation
         warmup_steps=500,  # number of warmup steps for learning rate scheduler
         weight_decay=0.01,  # strength of weight decay
         logging_dir='./out/model_logs',  # directory for storing logs
         logging_steps=10,
+        learning_rate=3e-4
     )
 
     model = AutoModelForMaskedLM.from_pretrained("bert-base-german-cased")
