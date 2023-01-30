@@ -27,7 +27,6 @@ class SequenceTokenizer:
         self.segmenter(self.target, stop=self.length)
         self.maxed = None
         self.maximize_segments()
-        print(self.segmentations, self.maxed)
 
     def fill_stack(self, s):
         self.segmentations.append(s)
@@ -40,7 +39,7 @@ class SequenceTokenizer:
         if start == stop:
             stack.append(segments)
             self.segmentations.append(segments)
-            #self.fill_stack(segments)
+            # self.fill_stack(segments)
 
         else:
             new_morpheme = [i for i in self.subvocab if token.startswith(i) and len(i) > 1]
@@ -51,9 +50,13 @@ class SequenceTokenizer:
                 if len(rest) == 1:
                     start = stop
                     segments.append(rest)
-                self.segmenter(token=rest, stop=stop, start=start, segments=segments.copy(), stack=stack.copy())
-                segments = segments[:-1]
-                start -= len(m)
+                    self.segmentations.append(segments)
+                    segments = segments[:-2]
+                    start -= (len(m) + 1)
+                else:
+                    self.segmenter(token=rest, stop=stop, start=start, segments=segments.copy(), stack=stack.copy())
+                    segments = segments[:-1]
+                    start -= len(m)
 
     def maximize_segments(self):
         ws = dict()
@@ -68,3 +71,6 @@ class SequenceTokenizer:
 
             ws[lex_bias] = s
         self.maxed = ws[max(ws.keys())]
+
+
+
