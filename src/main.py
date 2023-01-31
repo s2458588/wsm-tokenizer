@@ -13,7 +13,7 @@ import datasets
 import wm_tokenizer
 import text_utilities as tu
 from HanTa import HanoverTagger as ht
-from transformers import BertTokenizer, Trainer, TrainingArguments, BertForMaskedLM, AutoModelForMaskedLM
+from transformers import BertTokenizer, Trainer, TrainingArguments, BertForMaskedLM, AutoModelForMaskedLM, AutoModelForSequenceClassification
 from tokenizers import pre_tokenizers
 
 vd = tu.VerbDict("../new_tokenizer/fun_vocab_raw.txt", "../new_tokenizer/lex_vocab_raw.txt")
@@ -53,7 +53,7 @@ def main():
         learning_rate=3e-4
     )
 
-    model = AutoModelForMaskedLM.from_pretrained("bert-base-german-cased")
+    model = .from_pretrained("bert-base-german-cased")
 
     # model: https://huggingface.co/transformers/v4.5.1/main_classes/model.html#transformers.PreTrainedModel.resize_token_embeddings
 
