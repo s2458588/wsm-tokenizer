@@ -16,7 +16,6 @@ from HanTa import HanoverTagger as ht
 from transformers import BertTokenizer, Trainer, TrainingArguments, BertForMaskedLM, AutoModelForMaskedLM
 from tokenizers import pre_tokenizers
 
-
 vd = tu.VerbDict("../new_tokenizer/fun_vocab_raw.txt", "../new_tokenizer/lex_vocab_raw.txt")
 
 wmt = wm_tokenizer.WordmapTokenizer(
@@ -27,21 +26,19 @@ wmt = wm_tokenizer.WordmapTokenizer(
 )
 
 
-def wm_tokenize(data: list):
-    return wmt.wordmap2tokenizer(data, pos_tag="V", vocab=wmt.vocab, pt=wmt.bert_pretokenizer, tk=wmt.bert_tokenizer,
-                                 tg=wmt.hantatagger)
+def wm_tokenize(data):
+    return wmt.wordmap2tokenizer(data['text'], pos_tag="V", vocab=wmt.vocab, pt=wmt.bert_pretokenizer,
+                                 tk=wmt.bert_tokenizer, tg=wmt.hantatagger)
 
 
 def main():
-    """TODO: Fix UNK tokens bei wmt.SequenceTokenizer"""
 
     files = tu.files_from_path("../data/oscar/to_lines", full_path=True)
     dataset = datasets.load_dataset("text", data_files=files[5:15], split="train")
-    dataset.train_test_split(train_size=500000, test_size=75000, writer_batch_size=1000)
+    dataset = dataset.train_test_split(train_size=1000, test_size=150, writer_batch_size=100)
+    metric = datasets.load_metric('glue', 'mrpc', keep_in_memory=True)
 
-
-
-    dataset = dataset.map()
+    tokenized_dataset = dataset.map(wm_tokenize, batched=True, batch_size=1000)
 
     # recommendations: https://github.com/google-research/bert
     training_args = TrainingArguments(
@@ -63,8 +60,8 @@ def main():
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=dataset["train"],  # training dataset
-        eval_dataset=dataset["test"]  # evaluation dataset
+        train_dataset=tokenized_dataset["train"],  # training dataset
+        eval_dataset=tokenized_dataset["test"]  # evaluation dataset
     )
 
     model = trainer.model

@@ -11,7 +11,7 @@ __email__ = "s2458588@stud.uni-frankfurt.de"
 
 import numpy as np
 from HanTa import HanoverTagger as ht
-from transformers import AutoTokenizer, BertTokenizer
+from transformers import BertTokenizer  # , AutoTokenizer
 from tokenizers import pre_tokenizers
 
 
@@ -63,17 +63,20 @@ class SequenceTokenizer:
 
     def maximize_segments(self):
         ws = dict()
-        len_tk = self.length
-        for s in self.segmentations:
-            coverage = [len(i) / len_tk for i in s]  # how much % of the word is covered by this morpheme
-            morpheme_length = [len(i) for i in s]  # how long is each morpheme
-            rel_freq = [self.vocab[i] for i in s]  # relative frequency of the morpheme in the vocab
-            n_o_segs = [len(s) for i in s]
+        # len_tk = self.length
+        if not self.segmentations:
+            self.maxed = [self.target]
+        else:
+            for s in self.segmentations:
+                # coverage = [len(i) / len_tk for i in s]  # how much % of the word is covered by this morpheme
+                morpheme_length = [len(i) for i in s]  # how long is each morpheme
+                rel_freq = [self.vocab[i] for i in s]  # relative frequency of the morpheme in the vocab
+                n_o_segs = [len(s) for i in s]
 
-            lex_bias = sum([(np.tanh(mlen) / nsegs) for mlen, nsegs, freq in zip(morpheme_length, n_o_segs, rel_freq)])
+                lex_bias = sum([(np.tanh(mlen) / nsegs) for mlen, nsegs, freq in zip(morpheme_length, n_o_segs, rel_freq)])
 
-            ws[lex_bias] = s
-        self.maxed = ws[max(ws.keys())]
+                ws[lex_bias] = s
+            self.maxed = ws[max(ws.keys())]
 
 
 class WordmapTokenizer:
@@ -105,7 +108,7 @@ class WordmapTokenizer:
                     encoding.extend(tokenizer_format)
                 else:
                     encoding.extend(tk.tokenize(tkn))
-            ec = tk.encode_plus(encoding, return_token_type_ids=True, return_attention_mask=True, padding=True)
+            ec = tk.encode_plus(encoding, return_token_type_ids=True, return_attention_mask=True, padding='max_length')
             for i in encoding_stack.keys():
                 encoding_stack[i].append(ec[i])
         return encoding_stack
