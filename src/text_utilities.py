@@ -13,7 +13,7 @@ import regex as re
 import glob
 import numpy as np
 import collections as cl
-from findiff import FinDiff
+from scipy import stats
 
 
 class VerbDict:
@@ -32,6 +32,7 @@ class VerbDict:
         self.lm_rel = None
         self.fm_rel = None
         self.lmfm = None
+        self.vocab = None
         self.load_files()
         self.generate_hashmaps()
 
@@ -48,22 +49,36 @@ class VerbDict:
 
     def generate_hashmaps(self):
         """Generates dictionaries for (1) functional morphemes (2) lexemic morphemes (3) both combined."""
-        fm_clean = [i for i in self.fm_raw if i != ""]  # select non-empty morphemes
-        fm_ncount = cl.Counter(fm_clean).most_common()
-        n_o_fm = len(fm_clean)
-        self.fm_rel = {k: v / n_o_fm if len(k) > 1 else 0 for k, v in fm_ncount}  # unary morphemes get no weight
+        # cleaning and preselection of subvocabulary
 
-        lm_clean = [i for i in self.lm_raw if len(i) > 1]  # select only morphemes longer than 1 character
+        fm_clean = [i for i in self.fm_raw if i != ""]
+        lm_clean = [i for i in self.lm_raw if
+                    (len(i) > 1) and (i not in fm_clean)]  # select only morphemes longer than 1 character
         lm_ncount = cl.Counter(lm_clean).most_common()
         n_o_lm = len(lm_clean)
-        self.lm_rel = {k: v / n_o_lm if len(k) > 1 and k not in self.fm_rel else 0 for k, v in lm_ncount}
+        lm_rel_pre = {k: (v / n_o_lm) + 1 if ((len(k) > 2) and (k not in fm_clean)) else 0 for k, v in
+                      lm_ncount}  # len > 2 could be mean len of set(fm) -> int(2.47)
+        # functional morphemes: remove any str with len above 2.5 std (normalized)
 
-        fm_raw_clean = [i for i in self.fm_raw if i != ""]
-        lm_raw_clean = [i for i in self.lm_raw if i != ""]
-        lm_fm = lm_raw_clean + fm_raw_clean
-        lm_ncount = cl.Counter(lm_fm).most_common()
-        n_o_lm = len(lm_fm)
-        self.lmfm = {k: v / n_o_lm if len(k) > 1 else 0 for k, v in lm_ncount}  # unary morphemes get no weight
+        fm_uni = list(set(fm_clean))
+        fm_outliers = [fm_uni[i] for i in np.where(np.abs(stats.zscore([len(i) for i in fm_uni])) > 2.5)[0]]
+        fm_uni_no_outliers = set(fm_uni) - set(fm_outliers)
+
+        fm_ncount = cl.Counter(fm_clean).most_common()
+        n_o_fm = len(fm_clean)
+        fm_rel = {k: v / n_o_fm if (len(k) > 1) and (k in list(fm_uni_no_outliers)) else 0 for k, v in fm_ncount}
+
+        # lexical morphemes: use everything below median + median absolute deviation
+        lm_uni = list(set(lm_rel_pre))
+        lm_len = [len(i) for i in lm_uni]
+        lm_med = np.median(lm_len)
+        lm_mad = stats.median_abs_deviation(lm_len)
+        lm_outliers = set([lm_uni[i] for i in np.where(lm_med + lm_mad < lm_len)[0]])  # where(array > condition)
+        lm_uni_no_outliers = set(lm_uni) - set(lm_outliers)
+
+        lm_rel = {k: (v / n_o_lm) if (len(k) > 2) and (k not in fm_rel) and (k in list(lm_uni_no_outliers)) else 0 for
+                  k, v in lm_ncount}
+        self.vocab = {**lm_rel, **fm_rel}
 
 
 def corpus_metrics(tokenset):
@@ -154,20 +169,6 @@ def wordmap(longer, shorter, start=0):
     """Compares every character for a pair of strings. Takes start index as optional argument. Returns wordmap"""
     return [int(c1 == c2) for c1, c2 in zip(list(longer)[start::], list(shorter))]
 
-
-def derive_wordmap(wordmap, n=1):
-    """Takes a wordmap from MapToken() and finds the lexeme with the wordmap's derivative. N = which derivative"""
-    x = np.ndarray(
-        (len(wordmap),),
-        dtype=int,
-        buffer=np.array(wordmap)
-    )
-    dx = x[1] - x[0]  # np.std(x)
-    f = np.sin(x)
-    d_dx = FinDiff(0, dx, n)
-    df_dx = d_dx(f)
-
-    return df_dx
 
 
 def files_from_path(path: str, full_path=True) -> list:
