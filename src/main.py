@@ -67,6 +67,7 @@ def main():
     print(device)
     model = trainer.model.to(device)
     model.save_pretrained("../out/model/model_out_mlm.bin")
+    print(model, "trained on", data_path, "saved in", output_path)
 
 if __name__ == '__main__':
     import sys
