@@ -100,3 +100,10 @@ class MapToken:
         """t = target string, wm = boolean wordmap."""
         stem = "".join([c for b, c in zip(self.bwm, token) if b])
         return stem, token.partition(stem)
+
+
+if __name__ == '__main__':
+    import sys
+
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]

@@ -13,7 +13,7 @@ import datasets
 import wm_tokenizer
 import text_utilities as tu
 from HanTa import HanoverTagger as ht
-from transformers import BertTokenizer, Trainer, TrainingArguments, AutoModelForSequenceClassification
+from transformers import BertTokenizer, Trainer, TrainingArguments, AutoModelForMaskedLM # AutoModelForSequenceClassification
 from tokenizers import pre_tokenizers
 import torch
 
@@ -34,9 +34,9 @@ def wm_tokenize(data):
 
 def main():
 
-    files = tu.files_from_path("../data/oscar/to_lines", full_path=True)
+    files = tu.files_from_path(sys.argv[2], full_path=True)
     dataset = datasets.load_dataset("text", data_files=files, split="train")
-    dataset = dataset.train_test_split(train_size=1000, test_size=150, writer_batch_size=100)
+    dataset = dataset.train_test_split(train_size=1000, test_size=150, writer_batch_size=1000)
     metric = datasets.load_metric('glue', 'mrpc', keep_in_memory=True)
 
     tokenized_dataset = dataset.map(wm_tokenize, batched=True, batch_size=1000)
@@ -54,9 +54,7 @@ def main():
         learning_rate=3e-4
     )
 
-    model = AutoModelForSequenceClassification.from_pretrained("bert-base-german-cased")
-
-    # model: https://huggingface.co/transformers/v4.5.1/main_classes/model.html#transformers.PreTrainedModel.resize_token_embeddings
+    model = AutoModelForMaskedLM.from_pretrained(pretrained)
 
     trainer = Trainer(
         model=model,
@@ -68,4 +66,11 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
     model = trainer.model.to(device)
-    model.save_pretrained("../out/model/model_out_sequence.bin")
+    model.save_pretrained("../out/model/model_out_mlm.bin")
+
+if __name__ == '__main__':
+    import sys
+
+    pretrained = sys.argv[1]  # "bert-base-german-cased"
+    data_path = sys.argv[2]  # "../data/oscar/to_lines"
+    output_path = sys.argv[3] # "../out/model/"
