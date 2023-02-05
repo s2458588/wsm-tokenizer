@@ -68,12 +68,13 @@ class SequenceTokenizer:
             self.maxed = [self.target]
         else:
             for s in self.segmentations:
-                # coverage = [len(i) / len_tk for i in s]  # how much % of the word is covered by this morpheme
+                coverage = [len(i) / len(self.target) for i in s]  # how much % of the word is covered by this morpheme
                 morpheme_length = [len(i) for i in s]  # how long is each morpheme
-                rel_freq = [self.vocab[i] for i in s]  # relative frequency of the morpheme in the vocab
+                # rel_freq = [self.vocab[i] for i in s]  # relative frequency of the morpheme in the vocab
                 n_o_segs = [len(s) for i in s]
 
-                lex_bias = sum([(np.tanh(mlen) / nsegs) for mlen, nsegs, freq in zip(morpheme_length, n_o_segs, rel_freq)])
+                # lex_bias = sum([(np.tanh(mlen) / nsegs) for mlen, nsegs, freq in zip(morpheme_length, n_o_segs, rel_freq)])
+                lex_bias = sum([(cov/nsegs)**(1/mlen) for cov, nsegs, mlen in zip(coverage, n_o_segs, morpheme_length)])
 
                 ws[lex_bias] = s
             self.maxed = ws[max(ws.keys())]

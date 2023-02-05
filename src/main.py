@@ -13,8 +13,9 @@ import datasets
 import wm_tokenizer
 import text_utilities as tu
 from HanTa import HanoverTagger as ht
-from transformers import BertTokenizer, Trainer, TrainingArguments, BertForMaskedLM, AutoModelForMaskedLM, AutoModelForSequenceClassification
+from transformers import BertTokenizer, Trainer, TrainingArguments, AutoModelForSequenceClassification
 from tokenizers import pre_tokenizers
+import torch
 
 vd = tu.VerbDict("../new_tokenizer/fun_vocab_raw.txt", "../new_tokenizer/lex_vocab_raw.txt")
 
@@ -34,7 +35,7 @@ def wm_tokenize(data):
 def main():
 
     files = tu.files_from_path("../data/oscar/to_lines", full_path=True)
-    dataset = datasets.load_dataset("text", data_files=files[5:15], split="train")
+    dataset = datasets.load_dataset("text", data_files=files, split="train")
     dataset = dataset.train_test_split(train_size=1000, test_size=150, writer_batch_size=100)
     metric = datasets.load_metric('glue', 'mrpc', keep_in_memory=True)
 
@@ -53,7 +54,7 @@ def main():
         learning_rate=3e-4
     )
 
-    model = .from_pretrained("bert-base-german-cased")
+    model = AutoModelForSequenceClassification.from_pretrained("bert-base-german-cased")
 
     # model: https://huggingface.co/transformers/v4.5.1/main_classes/model.html#transformers.PreTrainedModel.resize_token_embeddings
 
@@ -64,4 +65,7 @@ def main():
         eval_dataset=tokenized_dataset["test"]  # evaluation dataset
     )
 
-    model = trainer.model
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
+    model = trainer.model.to(device)
+    model.save_pretrained("../out/model/model_out_sequence.bin")
